@@ -1,6 +1,14 @@
+"""Streamlit chatbot – fixed quick‑prompt flow & continuous input
+Creates a seamless UX: chat input is always on screen; quick‑prompt buttons
+no longer hide it and conversation can proceed in the same rerun.
+"""
+
+import os
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 import streamlit as st
 from dotenv import load_dotenv
-import os
 
 from langchain.agents.agent_types import AgentType
 from langchain_experimental.agents.agent_toolkits import create_csv_agent
@@ -10,15 +18,18 @@ from langchain.memory import ConversationBufferMemory
 from langchain.callbacks.streamlit import StreamlitCallbackHandler
 
 # -----------------------------------------------------------------------------
-# 1️⃣  ENV + MODEL SET‑UP  (runs once at app start)
+# 1️⃣  ENV + MODEL SET‑UP
 # -----------------------------------------------------------------------------
 load_dotenv()
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+LOCAL_TZ = ZoneInfo("Europe/Prague")
+CURRENT_TIME = datetime.now(LOCAL_TZ).strftime("%Y-%m-%d %H:%M (%Z)")
+print(CURRENT_TIME)
 
 # -----------------------------------------------------------------------------
-# 2️⃣  PROMPT  (your original, + chat history placeholder)
+# 2️⃣  PROMPT
 # -----------------------------------------------------------------------------
-SYSTEM_PROMPT = """
+SYSTEM_PROMPT = f"""
 You are a Czech‑speaking municipal‑data assistant with Python execution rights.
 Three pandas DataFrames are pre‑loaded for you:
 
@@ -43,6 +54,9 @@ Three pandas DataFrames are pre‑loaded for you:
       • poradatele          – organisers (semicolon str)
       • adresa              – location text (str)
       • image_urls          – semicolon str of images
+      In the current setup, this containts only two rows 
+       - two rows with the same subject "Zasedání Zastupitelstva města Horšovský Týn"
+       - this df should be only used when talking about "Zasedání Zastupitelstva" and similar
 
 3.  df3  – AKTUALITY (news flashes)
     Columns
@@ -77,6 +91,10 @@ Three pandas DataFrames are pre‑loaded for you:
 
    Logically justify in the answer whenever you fall back to a fuzzy rule.
 
+Current local date & time: {CURRENT_TIME}
+YOU ABSOLUTELY NEED TO KEEP THE CURRENT TIME IN MIND WHEN ANSWERING THE USER'S QUESTION.
+IF THE USER ASKS ABOUT "PŘÍŠTÍ" or "MINULÉ", the current date is super important. 
+
 If you need more data, ask the user first; do **not** fetch the web.
 """
 
@@ -87,7 +105,7 @@ PROMPT = ChatPromptTemplate.from_messages([
 ])
 
 # -----------------------------------------------------------------------------
-# 3️⃣  AGENT FACTORY  (cached – CSVs + memory loaded once)
+# 3️⃣  AGENT FACTORY (cached)
 # -----------------------------------------------------------------------------
 @st.cache_resource(show_spinner=False)
 def get_agent():
@@ -100,7 +118,7 @@ def get_agent():
             "data/aktuality.csv",
         ],
         prompt=PROMPT,
-        verbose=True,               # must be True so callbacks stream thoughts
+        verbose=True,
         agent_type=AgentType.OPENAI_FUNCTIONS,
         allow_dangerous_code=True,
         memory=memory,
@@ -109,34 +127,60 @@ def get_agent():
 agent = get_agent()
 
 # -----------------------------------------------------------------------------
-# 4️⃣  STREAMLIT PAGE LAYOUT
+# 4️⃣  UI LAYOUT
 # -----------------------------------------------------------------------------
-st.set_page_config(page_title="Horšovský Týn - chatbot", page_icon="")
-st.title("Horšovský Týn - chatbot")
+st.set_page_config(page_title="Horšovský Týn – Chatbot", page_icon="🗂️", layout="wide")
 
-# Chat history across reruns
+with st.sidebar:
+    st.image("logo.png", width=160, caption="Město Horšovský Týn")
+    st.markdown("##### Chatbot městských dat")
+
+    st.divider()
+
+    st.markdown("**Rychlé dotazy:**")
+    if st.button(":wastebasket: Svoz odpadu"):
+        st.session_state["preset_query"] = "Máš nějaké informace o svozu odpadu?"
+    if st.button(":office: Zasedání zastupitelstva"):
+        st.session_state["preset_query"] = "Kdy je příští zasedání zastupitelstva?"
+
+    st.divider()
+    show_thoughts = st.checkbox(":brain: Zobrazit myšlení agenta", value=True)
+    st.divider()
+    if "history" in st.session_state and st.session_state.history:
+        transcript = "\n\n".join(f"{role.upper()}: {txt}" for role, txt in st.session_state.history)
+        st.download_button("⬇️ Stáhnout přepis", transcript, "chat_přepis.txt", "text/plain")
+
+# -----------------------------------------------------------------------------
+# 5️⃣  CHAT PANEL
+# -----------------------------------------------------------------------------
+st.title("🗂️ Chatbot městských dat")
+
+# Ensure history exists
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# 🔄 Render conversation so far (without current turn)
-for role, msg in st.session_state.history:
+# ---- primary chat input (always visible) ----
+primary_input = st.chat_input("Zadejte dotaz…", key="main_input")
+
+# A preset query (from quick button) overrides keyboard input for this turn
+user_query = st.session_state.pop("preset_query", None) or primary_input
+
+# Render chat history
+for role, message in st.session_state.history:
     with st.chat_message(role):
-        st.markdown(msg)
+        st.markdown(message, unsafe_allow_html=True)
 
-# ℹ️  Input box
-user_query = st.chat_input("Zadejte dotaz…")
-
+# ---- process new user query ----
 if user_query:
-    # ➤ Show the user's message immediately
     with st.chat_message("user"):
         st.markdown(user_query)
     st.session_state.history.append(("user", user_query))
 
-    # ➤ Assistant thinking + final answer
     with st.chat_message("assistant"):
-        callback_container = st.container()  # where StreamlitCallbackHandler streams
-        cb_handler = StreamlitCallbackHandler(callback_container)
+        cb_container = st.container()
+        cb_handler = StreamlitCallbackHandler(cb_container) if show_thoughts else None
         with st.spinner("Zpracovávám dotaz…"):
-            answer = agent.run(user_query, callbacks=[cb_handler])
-        st.markdown(answer)
+            answer = agent.run(user_query, callbacks=[cb_handler] if cb_handler else None)
+        st.markdown(answer, unsafe_allow_html=True)
     st.session_state.history.append(("assistant", answer))
+
