@@ -111,8 +111,8 @@ agent = get_agent()
 # -----------------------------------------------------------------------------
 # 4️⃣  STREAMLIT PAGE LAYOUT
 # -----------------------------------------------------------------------------
-st.set_page_config(page_title="🗂️ Municipální data – Chatbot", page_icon="🗂️")
-st.title("🗂️ Municipální data – Chatbot")
+st.set_page_config(page_title="Horšovský Týn - chatbot", page_icon="")
+st.title("Horšovský Týn - chatbot")
 
 # Chat history across reruns
 if "history" not in st.session_state:
