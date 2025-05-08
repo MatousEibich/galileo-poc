@@ -28,7 +28,7 @@ poetry run python app.py
 
 Or run with Streamlit:
 ```
-poetry run streamlit run streamlit_app.py
+poetry run streamlit run app.py
 ```
 
 ## Streamlit Cloud Deployment
@@ -36,10 +36,27 @@ poetry run streamlit run streamlit_app.py
 This project can be deployed to Streamlit Cloud:
 
 1. Push your repository to GitHub
-2. Add your `OPENAI_API_KEY` to Streamlit Cloud secrets
-3. Deploy with `streamlit_app.py` as the entry point
+2. Add your `OPENAI_API_KEY` to Streamlit Cloud secrets:
+   - In Streamlit Cloud dashboard, go to your app settings
+   - Navigate to "Secrets" section
+   - Add your API key in the format:
+   ```
+   OPENAI_API_KEY = "your-api-key-here"
+   ```
+3. Deploy with the appropriate entry point (app.py)
 
 The project is configured with `package-mode = false` in the pyproject.toml file to fix Poetry deployment issues on Streamlit Cloud.
+
+## Required Dependencies
+
+This project requires the following key dependencies:
+- langchain and related packages (langchain-openai, langchain-core, langchain-experimental)
+- openai
+- streamlit
+- pandas
+- tabulate
+- python-dotenv
+- jsonpath-ng
 
 ## Development
 
