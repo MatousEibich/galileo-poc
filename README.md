@@ -21,9 +21,25 @@ OPENAI_API_KEY=your_api_key_here
 
 ## Running the Application
 
+Locally:
 ```
 poetry run python app.py
 ```
+
+Or run with Streamlit:
+```
+poetry run streamlit run streamlit_app.py
+```
+
+## Streamlit Cloud Deployment
+
+This project can be deployed to Streamlit Cloud:
+
+1. Push your repository to GitHub
+2. Add your `OPENAI_API_KEY` to Streamlit Cloud secrets
+3. Deploy with `streamlit_app.py` as the entry point
+
+The project is configured with `package-mode = false` in the pyproject.toml file to fix Poetry deployment issues on Streamlit Cloud.
 
 ## Development
 
