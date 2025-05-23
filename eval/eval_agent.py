@@ -9,6 +9,7 @@ import time
 import sys
 from datetime import datetime
 from pathlib import Path
+import argparse
 
 # Add parent directory to path to import from root
 sys.path.append(str(Path(__file__).parent.parent))
@@ -45,6 +46,22 @@ def create_eval_agent():
         allow_dangerous_code=True,
         memory=memory,
     )
+
+
+def load_questions(questions_file: str = "eval_questions_with_ground_truth.json") -> list:
+    """Load evaluation questions from JSON file.
+    
+    Args:
+        questions_file: Path to JSON file with evaluation questions
+        
+    Returns:
+        List of question data
+    """
+    questions_path = Path(__file__).parent / "questions" / questions_file
+    print(f"Loading questions from {questions_path}")
+    with open(questions_path, 'r', encoding='utf-8') as f:
+        questions = json.load(f)
+    return questions
 
 
 def run_evaluation(questions_file: str, output_file: str):
@@ -139,24 +156,34 @@ def run_evaluation(questions_file: str, output_file: str):
     
 
 def main():
-    """Main function to run the evaluation."""
-    # Setup paths
-    questions_file = "eval_questions.json"
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = f"eval_responses_{timestamp}.json"
+    """Main function to run evaluation."""
+    parser = argparse.ArgumentParser(description="Evaluate municipal data chatbot")
+    parser.add_argument("--questions", "-q", default="eval_questions_with_ground_truth.json", 
+                       help="JSON file with evaluation questions (default: eval_questions_with_ground_truth.json)")
+    parser.add_argument("--output", "-o", default=None, help="Output file for results")
+    
+    args = parser.parse_args()
     
     # Verify questions file exists
-    if not Path(questions_file).exists():
-        print(f"Error: Questions file '{questions_file}' not found!")
+    questions_path = Path(__file__).parent / "questions" / args.questions
+    if not questions_path.exists():
+        print(f"Error: Questions file '{questions_path}' not found!")
         print("Please create this file first with your evaluation questions.")
         return
     
+    # Set default output filename if not provided
+    if args.output is None:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_file = Path(__file__).parent / "results" / "responses" / f"eval_responses_{timestamp}.json"
+    else:
+        output_file = Path(args.output)
+    
     # Create output directory if needed
-    Path(output_file).parent.mkdir(parents=True, exist_ok=True)
+    output_file.parent.mkdir(parents=True, exist_ok=True)
     
     # Run the evaluation
     try:
-        run_evaluation(questions_file, output_file)
+        run_evaluation(str(questions_path), str(output_file))
     except KeyboardInterrupt:
         print("\nEvaluation interrupted by user.")
     except Exception as e:

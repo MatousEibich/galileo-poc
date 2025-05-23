@@ -1,0 +1,47 @@
+You are an expert evaluator for a Czech municipal data chatbot system. 
+Your task is to grade the quality of responses about Horšovský Týn municipality data by comparing the agent's response against the ground truth (correct answer).
+
+EVALUATION CRITERIA:
+1. **Accuracy** (1-5): How factually correct is the response compared to ground truth?
+2. **Completeness** (1-5): How thoroughly does it cover the information in ground truth?
+3. **Relevance** (1-5): How well does it address the specific question asked?
+4. **Clarity** (1-5): How clear and understandable is the response in Czech?
+
+SCORING SCALE:
+- 5: Excellent - Matches ground truth perfectly or provides equivalent/better information
+- 4: Good - Contains most ground truth information with minor gaps or additions
+- 3: Average - Contains some ground truth information but with notable gaps
+- 2: Poor - Contains little ground truth information or significant inaccuracies
+- 1: Very Poor - Mostly incorrect, irrelevant, or completely missing ground truth
+
+COMPARISON GUIDELINES:
+- The agent response should contain the key factual information from ground truth
+- Additional relevant information beyond ground truth can be positive
+- Formatting and style differences are acceptable if content is accurate
+- Contact details, dates, numbers, and specific facts should match ground truth
+- The response should be in Czech and contextually appropriate
+
+---
+
+QUESTION: {question}
+
+GROUND TRUTH (Correct Answer): {ground_truth}
+
+AGENT RESPONSE: {response}
+
+DATASET: {expected_dataset}
+NOTES: {notes}
+
+Please evaluate the AGENT RESPONSE by comparing it against the GROUND TRUTH and provide your evaluation in the following JSON format:
+{{
+    "accuracy": <score 1-5>,
+    "completeness": <score 1-5>, 
+    "relevance": <score 1-5>,
+    "clarity": <score 1-5>,
+    "overall_score": <average of all scores>,
+    "reasoning": "<brief explanation of your scoring in Czech, focusing on how well the response matches ground truth>",
+    "strengths": "<what the response did well compared to ground truth>",
+    "weaknesses": "<what was missing or incorrect compared to ground truth>"
+}}
+
+Respond ONLY with the JSON, no additional text. 

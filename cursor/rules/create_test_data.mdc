@@ -1,0 +1,124 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Creating Evaluation Questions for Municipal Chatbot
+
+Quick guide for creating new test questions with ground truth answers.
+
+## File Structure
+
+Add questions to: `eval/questions/`
+- `eval_questions_test.json` - Small test set (3 questions)  
+- `eval_questions_with_ground_truth.json` - Full set (10 questions)
+
+## Data Sources
+
+Three datasets from Horšovský Týn:
+- `editors_tyn` - Website content, services, contact info
+- `messages_tyn` - News, announcements, events  
+- `official_boards_tyn` - Official notices, regulations
+
+Files: `data/data-v2/[dataset_name].csv`
+
+## JSON Format
+
+```json
+{
+  "id": 11,
+  "question": "Jak kontaktovat technické služby?",
+  "dataset": "editors_tyn",
+  "ground_truth": "Technické služby: tel. 379 415 155, email: technicke.sluzby@muht.cz",
+  "notes": "Simple contact lookup"
+}
+```
+
+## Required Fields
+
+- **`id`** - Unique number (increment from last)
+- **`question`** - Czech question a citizen would ask
+- **`dataset`** - Which CSV file has the answer
+- **`ground_truth`** - Exact correct answer from the data
+- **`notes`** - What this tests
+
+## Question Types
+
+1. **Contact info** - Phone, email, hours
+2. **Services** - How to apply, requirements  
+3. **News/Events** - Recent announcements
+4. **Official notices** - Regulations, lost items
+5. **Financial** - Budget amounts, costs
+
+## Creating Questions
+
+### Step 1: Find Data
+Search the CSV files:
+```bash
+grep -i "contact" data/data-v2/editors_tyn.csv
+```
+
+### Step 2: Write Question
+- Use natural Czech
+- Ask something citizens would want to know
+- Be specific
+
+### Step 3: Extract Ground Truth  
+- Copy exact info from the CSV `content` column
+- Include all relevant details (dates, phone numbers, etc.)
+- Write in clear Czech
+
+## Examples
+
+### Easy (Contact Info)
+```json
+{
+  "id": 11,
+  "question": "Jaké jsou úřední hodiny?", 
+  "dataset": "editors_tyn",
+  "ground_truth": "Úřední hodiny: Po, St 8:00-17:00, Út, Čt 8:00-15:00, Pá 8:00-13:00",
+  "notes": "Basic office hours lookup"
+}
+```
+
+### Medium (Service Info)
+```json
+{
+  "id": 12,
+  "question": "Jak požádat o přidělení bytu?",
+  "dataset": "editors_tyn", 
+  "ground_truth": "Žádost o přidělení bytu podejte na odboru správy majetku, formulář ke stažení na webu.",
+  "notes": "Service application process"
+}
+```
+
+### Hard (Specific Details)
+```json
+{
+  "id": 13,
+  "question": "Kolik stojí poplatek za odpad v roce 2025?",
+  "dataset": "official_boards_tyn",
+  "ground_truth": "Poplatek za komunální odpad pro rok 2025: 850 Kč na osobu a rok.",
+  "notes": "Specific fee amount lookup"
+}
+```
+
+## Testing Process
+
+1. Add question to test file
+2. Run: `python eval_agent.py --questions eval_questions_test.json`
+3. Run: `python eval_grading.py [response_file] --questions eval_questions_test.json`
+4. Check if score makes sense
+5. Add to full set when ready
+
+## Quick Checklist
+
+- [ ] Question in Czech ✓
+- [ ] Answer exists in specified dataset ✓  
+- [ ] Ground truth is complete ✓
+- [ ] Unique ID number ✓
+
+---
+
+
+**Goal**: Create questions that test if the chatbot can find the right information from municipal data. 
