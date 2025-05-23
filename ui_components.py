@@ -26,10 +26,12 @@ def render_sidebar() -> bool:
         st.divider()
 
         st.markdown("**Rychlé dotazy:**")
-        if st.button(":wastebasket: Svoz odpadu"):
-            st.session_state["preset_query"] = "Máš nějaké informace o svozu odpadu?"
-        if st.button(":office: Zasedání zastupitelstva"):
-            st.session_state["preset_query"] = "Kdy je příští zasedání zastupitelstva?"
+        if st.button(":building_construction: Úřední deska"):
+            st.session_state["preset_query"] = "Co je aktuálně na úřední desce?"
+        if st.button(":houses: Bytové informace"):
+            st.session_state["preset_query"] = "Jak funguje přidělování bytů v majetku města?"
+        if st.button(":euro: Dotace z EU"):
+            st.session_state["preset_query"] = "Jaké projekty jsou financovány z EU?"
 
         st.divider()
         show_thoughts = st.checkbox(":brain: Zobrazit myšlení agenta", value=True)

@@ -46,7 +46,7 @@ def main():
     show_thoughts = render_sidebar()
     
     # Main chat area
-    st.title("🗂️ Chatbot městských dat")
+    st.title("🏙️ Chatbot městských dat Horšovský Týn")
     
     # Get user input
     user_query = get_user_input()
