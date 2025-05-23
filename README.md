@@ -1,6 +1,15 @@
 # Galileo POC
 
-A simple proof of concept using LangChain and OpenAI.
+A modular Streamlit application using LangChain and OpenAI for querying Czech municipal data.
+
+## Project Structure
+
+- `app.py` - Main Streamlit application entry point
+- `config.py` - Configuration settings and system prompts
+- `agent.py` - LangChain agent setup and management
+- `ui_components.py` - Streamlit UI helper functions
+- `data/` - CSV files containing municipal data
+- `questions.txt` - Example questions for testing
 
 ## Setup
 
@@ -60,4 +69,10 @@ This project requires the following key dependencies:
 
 ## Development
 
-This project uses Poetry for dependency management and virtual environments. The virtual environment is configured to be created in the `.venv` directory within the project. 
+This project uses Poetry for dependency management and virtual environments. The virtual environment is configured to be created in the `.venv` directory within the project.
+
+The codebase is organized into modular components for better maintainability:
+- Configuration and prompts are centralized in `config.py`
+- Agent logic is separated in `agent.py` 
+- UI components are modularized in `ui_components.py`
+- Main application flow is in `app.py` 
