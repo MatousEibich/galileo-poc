@@ -10,6 +10,10 @@ ENV/
 env.bak/
 venv.bak/
 
+# Logs
+logs/
+*.log
+
 # Environment variables
 .env
 .env.local
@@ -39,9 +43,6 @@ Thumbs.db
 
 # SQLite database
 *.db
-
-# Logs
-*.log
 
 # Data files
 data/data-v2/*.json

@@ -14,38 +14,15 @@ import argparse
 # Add parent directory to path to import from root
 sys.path.append(str(Path(__file__).parent.parent))
 
-# Import dependencies directly without streamlit
-from langchain.agents.agent_types import AgentType
-from langchain_experimental.agents.agent_toolkits import create_csv_agent
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain.memory import ConversationBufferMemory
-
-from config import CSV_FILES, MODEL_NAME, TEMPERATURE, get_system_prompt
+from agents.factory import create_csv_chatbot_agent
+from config import CSV_FILES
 
 
 def create_eval_agent():
     """Create CSV agent for evaluation (without streamlit caching)."""
-    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-    
-    # Fix CSV paths to work from eval subfolder
-    eval_csv_files = [str(Path(__file__).parent.parent / path) for path in CSV_FILES]
-    
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", get_system_prompt()),
-        ("system", "Dosavadní konverzace:\n{chat_history}"),
-        ("human", "{input}"),
-    ])
-    
-    return create_csv_agent(
-        ChatOpenAI(temperature=TEMPERATURE, model=MODEL_NAME),
-        eval_csv_files,
-        prompt=prompt,
-        verbose=True,
-        agent_type=AgentType.OPENAI_FUNCTIONS,
-        allow_dangerous_code=True,
-        memory=memory,
-    )
+    # Resolve CSV paths relative to the parent directory since we're in eval/
+    base_path = Path(__file__).parent.parent
+    return create_csv_chatbot_agent(CSV_FILES, base_path=base_path, use_memory=True)
 
 
 def load_questions(questions_file: str = "eval_questions_with_ground_truth.json") -> list:
@@ -165,7 +142,8 @@ def main():
     args = parser.parse_args()
     
     # Verify questions file exists
-    questions_path = Path(__file__).parent / "questions" / args.questions
+    questions_path = Path(__file__).parent / args.questions
+    
     if not questions_path.exists():
         print(f"Error: Questions file '{questions_path}' not found!")
         print("Please create this file first with your evaluation questions.")

@@ -9,7 +9,57 @@ A modular Streamlit application using LangChain and OpenAI for querying Czech mu
 - `agent.py` - LangChain agent setup and management
 - `ui_components.py` - Streamlit UI helper functions
 - `data/` - CSV files containing municipal data
-- `questions.txt` - Example questions for testing
+- `prompts/` - System and agent prompts
+- `agents/` - Agent factory and related components
+- `eval/` - Evaluation framework for testing agent responses
+- `static/` - Static assets (e.g., images, CSS)
+
+## Architecture
+
+The application follows a modular architecture with clear separation of concerns:
+
+```
+┌─────────────┐     ┌───────────────┐     ┌───────────────┐
+│  Streamlit  │     │   LangChain   │     │     OpenAI    │
+│    UI       │────▶│    Agent      │────▶│     API       │
+│             │     │               │     │               │
+└─────────────┘     └───────────────┘     └───────────────┘
+       ▲                    ▲                    ▲
+       │                    │                    │
+       │                    │                    │
+┌──────┴────────┐   ┌──────┴────────┐    ┌──────┴────────┐
+│  UI           │   │  Agent        │    │  Config &     │
+│  Components   │   │  Factory      │    │  Prompts      │
+└───────────────┘   └───────────────┘    └───────────────┘
+                             ▲
+                             │
+                     ┌───────┴────────┐
+                     │     CSV        │
+                     │     Data       │
+                     └────────────────┘
+```
+
+### Key Components:
+
+1. **UI Layer** (`app.py`, `ui_components.py`):
+   - Handles user interaction and chat interface
+   - Manages session state and chat history
+   - Provides quick prompt buttons and sidebar controls
+
+2. **Agent Layer** (`agent.py`, `agents/factory.py`):
+   - Creates and configures the LangChain CSV agent
+   - Manages conversation memory
+   - Processes user queries through the agent
+
+3. **Configuration** (`config.py`, `prompts/system_prompt.txt`):
+   - Centralized configuration settings
+   - System prompts and templates
+   - CSV data paths and LLM settings
+
+4. **Evaluation Framework** (`eval/`):
+   - Independent test framework for agent responses
+   - Ground truth comparison using LLM-as-a-judge
+   - Performance metrics and response quality assessment
 
 ## Setup
 
@@ -19,6 +69,11 @@ A modular Streamlit application using LangChain and OpenAI for querying Czech mu
 4. Install dependencies:
 ```
 poetry install
+```
+
+For evaluation functionality, use:
+```
+poetry install -E eval
 ```
 
 ## Environment Variables
@@ -58,7 +113,7 @@ The project is configured with `package-mode = false` in the pyproject.toml file
 
 ## Required Dependencies
 
-This project requires the following key dependencies:
+All dependencies are managed through `pyproject.toml`, which includes:
 - langchain and related packages (langchain-openai, langchain-core, langchain-experimental)
 - openai
 - streamlit
