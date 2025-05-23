@@ -12,3 +12,17 @@ __pycache__/
 
 # Logs
 *.log
+
+# Data files
+data/data-v2/*.json
+data/data-v2/*.csv
+data/data-v2/*.xlsx
+data/data-v2/*.xls
+data/data-v1/*.json
+data/data-v1/*.csv
+data/data-v1/*.xlsx
+data/data-v1/*.xls
+
+# Keep the conversion scripts and READMEs
+!data/data-v2/convert_*.py
+!data/data-v2/*.md
