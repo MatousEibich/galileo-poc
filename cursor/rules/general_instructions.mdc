@@ -1,0 +1,170 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# General Instructions for Repository Usage
+
+This repository contains a municipal data chatbot for Horšovský Týn with an evaluation framework. Here are the key instructions for working with this codebase.
+
+## Environment & Package Management
+
+### Core Tools
+- **uv**: Primary package manager for fast dependency resolution
+- **.venv**: Single virtual environment for both app and evaluation
+- **pyproject.toml**: Project configuration with optional dependency groups
+
+### Setup Commands
+```bash
+# Activate environment
+.venv\Scripts\Activate.ps1    # Windows PowerShell
+# source .venv/bin/activate   # Linux/Mac
+
+# Install dependencies
+uv pip install -e .           # Main app dependencies
+uv pip install -e .[eval]     # Include evaluation dependencies
+```
+
+## Project Structure
+
+```
+/
+├── .venv/                    # Virtual environment (gitignored)
+├── data/data-v2/            # CSV datasets (gitignored, scripts preserved)
+├── eval/                    # Evaluation framework
+│   ├── eval_agent.py        # Main evaluation script
+│   ├── eval_grading.py      # Future LLM grading (placeholder)
+│   ├── eval_questions.json  # Evaluation questions
+│   └── README.md           # Eval system documentation
+├── app.py                   # Main Streamlit application
+├── agent.py                 # LangChain CSV agent setup
+├── config.py                # Configuration and system prompts
+├── ui_components.py         # Streamlit UI components
+└── pyproject.toml          # Project dependencies
+```
+
+## Data Processing
+
+### Source Data
+- 3 JSON datasets from Horšovský Týn municipality website
+- Located in `data/data-v2/` (gitignored)
+- Conversion scripts preserved: `convert_*.py`
+
+### Generated Files
+- CSV files for agent consumption
+- Excel files (full + Excel-friendly versions)
+- All data files gitignored except conversion scripts
+
+## Main Application
+
+### Technology Stack
+- **Streamlit**: Web interface
+- **LangChain**: CSV agent with pandas backend
+- **OpenAI**: GPT models for responses
+- **Language**: Czech (all prompts and responses)
+
+### Running the App
+```bash
+streamlit run app.py
+```
+
+### Key Features
+- Three datasets: official boards, messages, editors content
+- Fuzzy matching and non-exact search policies
+- Czech-language municipal data assistant
+- Quick action buttons for common queries
+
+## Evaluation System
+
+### Location
+All evaluation files in `eval/` folder - completely independent from main app.
+
+### Components
+1. **eval_agent.py**: Runs questions through agent, saves timestamped responses
+2. **eval_questions.json**: 10 curated questions covering all datasets
+3. **eval_grading.py**: Placeholder for future LLM-as-a-judge implementation
+
+### Usage
+```bash
+cd eval
+python eval_agent.py
+# Generates: eval_responses_TIMESTAMP.json
+```
+
+### Evaluation Questions
+- Target specific dataset information
+- Test fuzzy matching capabilities
+- Cover municipal services (apartments, notices, EU projects, etc.)
+- Expected 100% success rate with current setup
+
+## Configuration Management
+
+### Environment Variables
+- `OPENAI_API_KEY`: Required for LangChain agent
+- Set in `.env` file (gitignored)
+
+### Key Config Files
+- **config.py**: CSV paths, model settings, system prompts
+- **pyproject.toml**: Dependencies with optional `[eval]` group
+- **.gitignore**: Protects data while preserving scripts
+
+## Working with Code
+
+### Import Paths
+- Main app imports work from root directory
+- Eval scripts add parent to sys.path for importing from root
+- CSV paths adjusted for eval subfolder execution
+
+### Dependency Groups
+```toml
+[project.optional-dependencies]
+eval = [
+    "langchain", "langchain-openai", "langchain-experimental",
+    "openai", "python-dotenv", "pandas", "tabulate"
+]
+```
+
+### Common Tasks
+1. **Add new evaluation question**: Edit `eval/eval_questions.json`
+2. **Update system prompt**: Modify `config.py` `get_system_prompt()`
+3. **Change CSV sources**: Update `config.py` `CSV_FILES`
+4. **Add dependencies**: Update `pyproject.toml`, install with `uv`
+
+## Development Guidelines
+
+### Code Organization
+- Keep main app streamlit-dependent code in root
+- Keep evaluation system independent in `eval/` folder
+- Use uv for all package management operations
+- Follow Czech language for all user-facing content
+
+### Data Handling
+- Original JSON files are gitignored
+- Conversion scripts are preserved and documented
+- CSV files generated locally, not committed
+- Excel files for human review, also gitignored
+
+### Testing
+- Evaluation system provides automated testing
+- Manual testing via Streamlit interface
+- No unit tests currently implemented
+
+## Troubleshooting
+
+### Common Issues
+1. **Import errors**: Ensure `.venv` is activated and dependencies installed
+2. **Missing CSV files**: Run conversion scripts in `data/data-v2/`
+3. **OpenAI errors**: Check API key in environment
+4. **Path issues**: Run eval scripts from `eval/` directory
+
+### Environment Reset
+```bash
+# If environment gets corrupted:
+Remove-Item -Recurse -Force .venv
+uv venv .venv
+.venv\Scripts\Activate.ps1
+uv pip install -e .[eval]
+```
+
+
+This repository is designed for municipal data processing and evaluation with a focus on Czech-language content and robust evaluation capabilities. 
