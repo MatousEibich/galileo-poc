@@ -41,3 +41,17 @@ package-mode = false
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+include = ["**/*.py"] 
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "D", "N"]
+ignore = ["D203", "D213"]  # Removes the conflicting docstring rules
+fixable = ["ALL"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["waypoint_rag_eval"]
+combine-as-imports = true
