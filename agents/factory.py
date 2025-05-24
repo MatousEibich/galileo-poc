@@ -1,5 +1,6 @@
 """Shared agent factory for creating CSV agents across the application."""
 
+import pandas as pd
 from pathlib import Path
 from typing import Any
 
@@ -46,6 +47,14 @@ def create_csv_chatbot_agent(
     logger.info("Creating CSV chatbot agent")
 
     try:
+        # Configure pandas display options for better LLM visibility
+        pd.set_option('display.max_columns', None)
+        pd.set_option('display.max_rows', 20)
+        pd.set_option('display.width', None)
+        pd.set_option('display.max_colwidth', None)
+        pd.set_option('display.expand_frame_repr', False)
+        logger.debug("Configured pandas display options for optimal LLM visibility")
+
         # Validate inputs
         if not csv_files:
             raise ValidationError("csv_files cannot be empty")
@@ -105,7 +114,7 @@ def create_csv_chatbot_agent(
             log_exception(logger, e, "creating ChatOpenAI instance")
             raise AgentError("Failed to create OpenAI client") from e
 
-        # Create and return agent
+        # Create and return agent with enhanced parameters
         try:
             agent = create_csv_agent(
                 llm,
@@ -115,9 +124,12 @@ def create_csv_chatbot_agent(
                 agent_type=AgentType.OPENAI_FUNCTIONS,
                 allow_dangerous_code=True,
                 memory=memory,
+                # Enhanced data visibility parameters
+                include_df_in_prompt=True,  # Ensure DataFrame context is shown
+                number_of_head_rows=15,     # Show more data context (increased from default 5)
             )
 
-            logger.info("Successfully created CSV chatbot agent")
+            logger.info("Successfully created CSV chatbot agent with enhanced data visibility")
             return agent
 
         except Exception as e:
