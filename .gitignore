@@ -27,6 +27,7 @@ logs/
 *.xlsx
 !pyproject.toml
 !eval/eval_questions.json
+!data/eval-streamlit/*.json
 
 # Eval results (but keep eval scripts)
 eval/eval_responses_*.json

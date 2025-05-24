@@ -8,6 +8,7 @@ import streamlit as st
 from langchain.callbacks.streamlit import StreamlitCallbackHandler
 
 from agent import get_agent
+from eval_viewer import render_eval_dashboard
 from ui_components import (
     get_user_input,
     initialize_session_state,
@@ -92,6 +93,43 @@ def initialize_agent():
         return None
 
 
+def render_chat_tab(agent, show_thoughts: bool) -> None:
+    """Render the chat interface tab.
+
+    Args:
+        agent: The LangChain agent instance
+        show_thoughts: Whether to display agent reasoning
+
+    """
+    try:
+        # Main chat area
+        st.title("🏙️ Chatbot městských dat Horšovský Týn")
+
+        # Get user input
+        try:
+            user_query = get_user_input()
+            logger.debug(f"User input received: {bool(user_query)}")
+        except Exception as e:
+            log_exception(logger, e, "getting user input")
+            user_query = None
+
+        # Render chat history
+        try:
+            render_chat_history()
+            logger.debug("Chat history rendered")
+        except Exception as e:
+            log_exception(logger, e, "rendering chat history")
+            st.warning("Chyba při zobrazování historie chatu")
+
+        # Process new query if provided
+        if user_query:
+            process_user_query(agent, user_query, show_thoughts)
+
+    except Exception as e:
+        log_exception(logger, e, "rendering chat tab")
+        st.error("Chyba při zobrazování chat rozhraní")
+
+
 def main() -> None:
     """Run the main application."""
     try:
@@ -117,14 +155,14 @@ def main() -> None:
             st.error("Chyba při inicializaci relace")
             return
 
-        # Create agent
+        # Create agent (only needed for chat tab)
         agent = initialize_agent()
         if agent is None:
             st.error("Nepodařilo se inicializovat chatbota. Zkontrolujte prosím konfiguraci.")
             logger.error("Failed to initialize agent, stopping application")
             return
 
-        # UI Layout
+        # UI Layout with tabs
         try:
             show_thoughts = render_sidebar()
             logger.debug("Sidebar rendered")
@@ -133,28 +171,14 @@ def main() -> None:
             st.error("Chyba při načítání postranního panelu")
             show_thoughts = True  # Default fallback
 
-        # Main chat area
-        st.title("🏙️ Chatbot městských dat Horšovský Týn")
+        # Create tabs
+        chat_tab, eval_tab = st.tabs(["💬 Chat", "📊 Výsledky vyhodnocení"])
 
-        # Get user input
-        try:
-            user_query = get_user_input()
-            logger.debug(f"User input received: {bool(user_query)}")
-        except Exception as e:
-            log_exception(logger, e, "getting user input")
-            user_query = None
+        with chat_tab:
+            render_chat_tab(agent, show_thoughts)
 
-        # Render chat history
-        try:
-            render_chat_history()
-            logger.debug("Chat history rendered")
-        except Exception as e:
-            log_exception(logger, e, "rendering chat history")
-            st.warning("Chyba při zobrazování historie chatu")
-
-        # Process new query if provided
-        if user_query:
-            process_user_query(agent, user_query, show_thoughts)
+        with eval_tab:
+            render_eval_dashboard()
 
     except ConfigurationError as e:
         logger.error(f"Configuration error: {e}")

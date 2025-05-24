@@ -50,6 +50,10 @@ CSV_FILES: list[str] = [
 MODEL_NAME: str = "gpt-4o-mini"
 TEMPERATURE: float = 0.0
 
+# Eval results settings
+EVAL_RESULTS_DIR: str = "data/eval-streamlit"
+EVAL_RESULTS_FILE: str | None = "eval_grades_with_ground_truth_20250524_080149.json"  # Optional specific file, None = use latest
+
 
 def validate_csv_files(csv_files: list[str], base_path: Path | None = None) -> list[Path]:
     """Validate that all CSV files exist and are readable.
@@ -165,6 +169,64 @@ def get_system_prompt() -> str:
         if isinstance(e, ConfigurationError):
             raise
         raise ConfigurationError("Failed to load system prompt") from e
+
+
+def get_latest_eval_file(eval_dir: str = EVAL_RESULTS_DIR) -> Path | None:
+    """Get the latest eval results file based on timestamp in filename.
+
+    Args:
+        eval_dir: Directory containing eval result files
+
+    Returns:
+        Path to latest eval file or None if no files found
+
+    """
+    try:
+        eval_path = Path(eval_dir)
+        if not eval_path.exists():
+            logger.warning(f"Eval results directory not found: {eval_path}")
+            return None
+
+        # Find all JSON files in the directory
+        json_files = list(eval_path.glob("*.json"))
+        if not json_files:
+            logger.warning(f"No JSON files found in eval directory: {eval_path}")
+            return None
+
+        # Sort by modification time (newest first)
+        latest_file = max(json_files, key=lambda x: x.stat().st_mtime)
+        logger.debug(f"Latest eval file found: {latest_file}")
+        return latest_file
+
+    except Exception as e:
+        log_exception(logger, e, "finding latest eval file")
+        return None
+
+
+def get_eval_file_path() -> Path | None:
+    """Get the eval file path based on configuration.
+
+    Returns:
+        Path to eval file or None if not found
+
+    """
+    try:
+        if EVAL_RESULTS_FILE:
+            # Use specific file if configured
+            eval_path = Path(EVAL_RESULTS_DIR) / EVAL_RESULTS_FILE
+            if eval_path.exists():
+                logger.debug(f"Using configured eval file: {eval_path}")
+                return eval_path
+            else:
+                logger.warning(f"Configured eval file not found: {eval_path}")
+                return None
+        else:
+            # Use latest file
+            return get_latest_eval_file()
+
+    except Exception as e:
+        log_exception(logger, e, "getting eval file path")
+        return None
 
 
 # Validate configuration on import only if running from the correct directory
